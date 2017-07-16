@@ -1,19 +1,35 @@
 import logger from '../../env/debug';
 import env from './../../env/env';
-import * as util from 'util';
-import { exec, ChildProcess } from 'child_process';
+import { promisify } from 'util';
+import { exec as execCallback, ChildProcess } from 'child_process';
+import { writeFile as writeFileCallback } from 'fs';
 
+const exec = promisify(execCallback);
+const writeFile = promisify(writeFileCallback);
 const debug = logger('dockerSandbox');
 
 class DockerSandbox {
 
+  path: string;
+
   constructor() {
     debug("Bot Constructor");
+    this.path = 'codebee_sandbox/';
   }
 
-  async createImage(imageName: string, files: string[]): Promise<ChildProcess> {
+  async addFile(file: BotCode): Promise<string> {
+    return writeFile(`${this.path}${file.name}`, file.contents); 
+  }
+
+  async addFiles(files: BotCode[]): Promise<void> {
+    debug("addFiles");
+    files.forEach( async(file) => { await this.addFile(file) } );
+    return Promise.resolve(undefined);
+  }
+
+  async createImage(imageName: string): Promise<ChildProcess> {
     debug("createImage");
-    return exec(`docker build -f codebee_sandbox/Dockerfile -t ${imageName} .`);
+    return exec(`docker build -f ${this.path}Dockerfile -t ${imageName} .`);
   }
    
   async run(imageName: string): Promise<ChildProcess> {
@@ -21,20 +37,24 @@ class DockerSandbox {
     return exec(`docker run -e ARGS="a b c d" ${imageName}`);
   }
 
-  async simulate(files: string[]): Promise<string> {
+  async simulate(files: BotCode[]): Promise<string> {
     debug("simulate");
     let imageName = "codebee_sandbox";
-    await this.createImage(imageName, files);
+
+    await this.addFiles(files);
+    await this.createImage(imageName).then((child_process) => {
+      debug("createImage has finished");
+      return child_process;
+    });
     
     return new Promise<string>(
       async(resolve, reject) => {
-        let res = await this.run(imageName);
+        const { stdout, stderr } = await this.run(imageName);
 
-        let outData = '';
-        res.stdout.on('data', block => outData+=block);//it is possible for stdout data to be sent in blocks
-        res.stdout.on('end', () => resolve(outData));        
+        debug("run has finished");
 
-        res.stderr.on('data', data => reject(data));
+        resolve(stdout);
+        reject(stderr);
       }
     );
   }
