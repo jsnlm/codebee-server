@@ -5,6 +5,9 @@ interface EnvironmentVars {
   DEBUG: string;
   MONGO_URI: string;
   PORT: string;
+
+  DOCKER_HOST: string;
+  DOCKER_MACHINE_NAME: string;
 }
 
 dotenv.config();
