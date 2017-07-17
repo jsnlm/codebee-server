@@ -1,26 +1,18 @@
 import { pick } from 'lodash';
 
 import { setupTest, clearDatabase } from '../../test/helper';
+import { seedUsers } from '../../test/user.seed';
 import { User, UserClass, UserModel, LoginError } from '../user';
 
-const users: UserModel[] = [];
-
-async function setupUsers() {
-  for (let i = 0; i < 3; i++) {
-    const data: UserClass = {
-      name: `user${i}`,
-      username: `username${i}`,
-      email: `user${i}@example.com`,
-      password: 'password123'
-    };
-    const u = await User.register(data);
-    users.push(u);
-  }
-}
+let users: UserModel[];
 
 beforeAll(async () => {
   await setupTest();
-  await setupUsers();
+  users = await seedUsers(3, {password: 'password123'});
+});
+
+afterAll(async () => {
+  await clearDatabase();
 });
 
 test('find user by username', async () => {

@@ -18,7 +18,7 @@ class DockerSandbox {
   }
 
   async addFile(file: BotCode): Promise<string> {
-    return writeFile(`${this.path}${file.name}`, file.contents); 
+    return writeFile(`${this.path}${file.fileName}`, file.contents); 
   }
 
   async addFiles(files: BotCode[]): Promise<void> {

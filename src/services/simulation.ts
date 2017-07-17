@@ -9,21 +9,21 @@ class Simulation {
 
   constructor() {
     this.sandbox = new DockerSandbox();
-    debug("Bot Constructor");
+    debug('Bot Constructor');
   }
 
   async simulate(): Promise<string> {
     try {
       let bots: BotCode[] = [];
       bots.push({
-        fileName: "testFile",
-        contents: "content line 1,  \ncontent line 2,  \ncontent line 3 \n"
+        fileName: 'testFile',
+        contents: 'content line 1\ncontent line 2\ncontent line 3 \n'
       });
       let result:string = await this.sandbox.simulate(bots);
-      debug("result: ", result);
+      debug('result: ', result);
       return Promise.resolve(result);
     } catch(e) {
-      debug("error: ", e);
+      debug('error: ', e);
       return Promise.reject(e);
     }
   }
