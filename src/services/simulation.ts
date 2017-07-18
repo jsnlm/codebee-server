@@ -16,8 +16,11 @@ class Simulation {
     try {
       let bots: BotCode[] = [];
       bots.push({
-        fileName: 'testFile',
-        contents: 'content line 1\ncontent line 2\ncontent line 3 \n'
+        fileName: 'testFile1',
+        contents: 'content line 1\ncontent line 2\ncontent line 3\n'
+      }, {
+        fileName: 'testFile2',
+        contents: 'content line 4\ncontent line 5\ncontent line 6\n'
       });
       let result:string = await this.sandbox.simulate(bots);
       debug('result: ', result);

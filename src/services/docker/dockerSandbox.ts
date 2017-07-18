@@ -2,29 +2,19 @@ import logger from '../../env/debug';
 import env from './../../env/env';
 import { promisify } from 'util';
 import { exec as execCallback, ChildProcess } from 'child_process';
-import { writeFile as writeFileCallback } from 'fs';
+import FileWriter from '../fileWriter';
 
 const exec = promisify(execCallback);
-const writeFile = promisify(writeFileCallback);
 const debug = logger('dockerSandbox');
 
 class DockerSandbox {
 
   path: string;
+  fileWriter: FileWriter;
 
   constructor() {
-    debug("Bot Constructor");
     this.path = 'codebee_sandbox/';
-  }
-
-  async addFile(file: BotCode): Promise<string> {
-    return writeFile(`${this.path}${file.fileName}`, file.contents); 
-  }
-
-  async addFiles(files: BotCode[]): Promise<void> {
-    debug("addFiles");
-    files.forEach( async(file) => { await this.addFile(file) } );
-    return Promise.resolve(undefined);
+    this.fileWriter = new FileWriter(this.path);
   }
 
   async createImage(imageName: string): Promise<ChildProcess> {
@@ -40,23 +30,18 @@ class DockerSandbox {
   async simulate(files: BotCode[]): Promise<string> {
     debug("simulate");
     let imageName = "codebee_sandbox";
-
-    await this.addFiles(files);
-    await this.createImage(imageName).then((child_process) => {
-      debug("createImage has finished");
-      return child_process;
-    });
-    
-    return new Promise<string>(
-      async(resolve, reject) => {
+    try {
+      await this.fileWriter.addFiles(files);
+      await this.createImage(imageName);
+      await this.fileWriter.removeFiles(files);
+      return new Promise<string>( async (resolve, reject) =>{
         const { stdout, stderr } = await this.run(imageName);
-
-        debug("run has finished");
-
         resolve(stdout);
         reject(stderr);
-      }
-    );
+      });
+    } catch(e) {
+      return e;
+    }
   }
 }
 
