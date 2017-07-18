@@ -8,7 +8,7 @@ let user: UserModel;
 let submissions: SubmissionModel[];
 
 beforeAll(async () => {
-  await setupTest();``
+  await setupTest();
   user = await seedUser();
   submissions = await seedSubmissions(3, user);
 });
