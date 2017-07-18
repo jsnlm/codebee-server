@@ -3,7 +3,7 @@ import { Document, Model, Schema } from 'mongoose';
 import { UserModel } from './user';
 import { Submission, SubmissionModel } from './submission';
 
-export enum matchState {
+export enum MatchState {
     NotRun = 'Not Run',
     Running = 'Running',
     Finished = 'Finished',
@@ -33,7 +33,7 @@ export class MatchClass {
   replayFile?: string;
   matchTime: Date;
   turns: Number;
-  state: matchState;
+  state: MatchState;
   async Submissions(): Promise<SubmissionModel[]> {
     return await Submission.find({_id: {$in: this.submission_ids}});
   };

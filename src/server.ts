@@ -2,7 +2,10 @@ import * as http from 'http';
 
 import env from './env/env';
 import { initialize as initializeDb } from './env/db';
+import jobs from './jobs';
 import logger from './env/debug';
+
+import { seedMatches } from './test/match.seed';
 
 const debug = logger('server');
 
@@ -29,6 +32,11 @@ function startServer() {
   server.listen(port, '0.0.0.0' as any);
   server.on('error', onError);
   server.on('listening', onListening);
+
+  /**
+  * Start Jobs
+  */
+  jobs();
 
   /**
   * Normalize a port into a number, string, or false.

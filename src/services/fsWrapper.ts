@@ -6,9 +6,14 @@ import logger from '../env/debug';
 const writeFile = promisify(writeFileCallback);
 const unlink = promisify(unlinkCallback);
 
-const debug = logger('fileWriter');
+const debug = logger('fsWrapper');
 
-class FileWriter {
+export interface File {
+  name: string;
+  contents: string;
+}
+
+export class fsWrapper {
 
   path: string;
 
@@ -16,23 +21,21 @@ class FileWriter {
     this.path = path;
   }
 
-  async addFile(file: BotCode): Promise<void> {
-    writeFile(`${this.path}${file.fileName}`, file.contents); 
+  async addFile(file: File): Promise<void> {
+    writeFile(`${this.path}${file.name}`, file.contents); 
   }
 
-  async addFiles(files: BotCode[]): Promise<void> {
+  async addFiles(files: File[]): Promise<void> {
     files.forEach( async(file) => { await this.addFile(file) } );
     return Promise.resolve(undefined);
   }
 
-  async removeFile(file: BotCode): Promise<void> {
-    await unlink(`${this.path}${file.fileName}`); 
+  async removeFile(file: File): Promise<void> {
+    await unlink(`${this.path}${file.name}`); 
   }
 
-  async removeFiles(files: BotCode[]): Promise<void> {
+  async removeFiles(files: File[]): Promise<void> {
     files.forEach( async(file) => { await this.removeFile(file) } );
     return Promise.resolve(undefined);
   }
 }
-
-export default FileWriter;

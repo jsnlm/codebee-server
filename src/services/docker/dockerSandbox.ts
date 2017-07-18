@@ -1,8 +1,11 @@
+import { exec as execCallback, ChildProcess } from 'child_process';
+import { random } from 'lodash';
+
 import logger from '../../env/debug';
 import env from './../../env/env';
 import { promisify } from 'util';
-import { exec as execCallback, ChildProcess } from 'child_process';
-import FileWriter from '../fileWriter';
+
+import { fsWrapper, File } from '../fsWrapper';
 
 const exec = promisify(execCallback);
 const debug = logger('dockerSandbox');
@@ -10,38 +13,30 @@ const debug = logger('dockerSandbox');
 class DockerSandbox {
 
   path: string;
-  fileWriter: FileWriter;
+  imageName: string;
+  fswrapper: fsWrapper;
 
-  constructor() {
+  async initialize(files: File[]) {
     this.path = 'codebee_sandbox/';
-    this.fileWriter = new FileWriter(this.path);
+    this.fswrapper = new fsWrapper(this.path);
+    this.imageName = `codebee_sandbox${random(1, 1000)}`; //make random image name
+
+    await this.fswrapper.addFiles(files);
+    await this.createImage();
+    await this.fswrapper.removeFiles(files);
+    return Promise.resolve();
   }
 
-  async createImage(imageName: string): Promise<ChildProcess> {
-    debug("createImage");
-    return exec(`docker build -f ${this.path}Dockerfile -t ${imageName} .`);
+  async createImage(): Promise<ChildProcess> {
+    return exec(`docker build -f ${this.path}Dockerfile -t ${this.imageName} .`);
   }
    
-  async run(imageName: string): Promise<ChildProcess> {
-    debug("run");
-    return exec(`docker run -e ARGS="a b c d" ${imageName}`);
-  }
-
-  async simulate(files: BotCode[]): Promise<string> {
-    debug("simulate");
-    let imageName = "codebee_sandbox";
-    try {
-      await this.fileWriter.addFiles(files);
-      await this.createImage(imageName);
-      await this.fileWriter.removeFiles(files);
-      return new Promise<string>( async (resolve, reject) =>{
-        const { stdout, stderr } = await this.run(imageName);
-        resolve(stdout);
-        reject(stderr);
-      });
-    } catch(e) {
-      return e;
-    }
+  async run(args: string): Promise<string> {
+    return new Promise<string>( async (resolve, reject) =>{
+      const { stdout, stderr } = await exec(`docker run -e ARGS="${args}" ${this.imageName}`);
+      resolve(stdout);
+      reject(stderr);
+    });
   }
 }
 

@@ -1,35 +1,39 @@
 import logger from '../env/debug';
 import DockerSandbox from './docker/dockerSandbox';
+import { MatchModel, MatchState } from './../models/match';
+import { File } from './fsWrapper';
 
 const debug = logger('Simulation');
 
-class Simulation {
+async function processResults(match: MatchModel, result: string) {
+  debug("result : ", result);
+  match.state = MatchState.Finished;
+  //TODO: process the result
+  match.save();
+}
 
-  sandbox:DockerSandbox;
+async function processError(match: MatchModel, error: string) {
+  debug("error : ", error);
+  match.state = MatchState.RuntimeError; //TODO change this to the correct MatchState
+  //TODO: process the error
+  match.save();
+}
 
-  constructor() {
-    this.sandbox = new DockerSandbox();
-    debug('Bot Constructor');
-  }
-
-  async simulate(): Promise<string> {
-    try {
-      let bots: BotCode[] = [];
-      bots.push({
-        fileName: 'testFile1',
-        contents: 'content line 1\ncontent line 2\ncontent line 3\n'
-      }, {
-        fileName: 'testFile2',
-        contents: 'content line 4\ncontent line 5\ncontent line 6\n'
-      });
-      let result:string = await this.sandbox.simulate(bots);
-      debug('result: ', result);
-      return Promise.resolve(result);
-    } catch(e) {
-      debug('error: ', e);
-      return Promise.reject(e);
-    }
+async function simulate(match: MatchModel) {
+  try {
+    let files:File [] = (await match.Submissions()).map(
+      submission => ({
+        name: submission._id,
+        contents: submission.code,
+      })
+    );    
+    let sandbox = new DockerSandbox();
+    await sandbox.initialize(files);
+    let result = await sandbox.run('a b c d e f g');
+    processResults(match, result);
+  } catch(error) {
+    processError(match, error);
   }
 }
 
-export default Simulation;
+export default simulate;
