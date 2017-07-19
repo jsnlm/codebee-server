@@ -1,7 +1,12 @@
 import * as mongoose from 'mongoose';
+
+import logger from '../env/debug';
 import { Document, Model, Schema } from 'mongoose';
 import { UserModel } from './user';
+import { MatchSubmissionClass, MatchSubmissionSchema } from './matchSubmission';
 import { Submission, SubmissionModel } from './submission';
+
+const debug = logger('Match');
 
 export enum MatchState {
     NotRun = 'Not Run',
@@ -18,33 +23,35 @@ interface MatchStatic {
 
 class MatchStatic {
   static async findBySubmission(submission: SubmissionModel) {
-    return await Match.find({submission_ids: submission._id});
+    return await Match.find({submissions: {submission: submission._id}});
   }
   
   static async findByUser(user: UserModel) {
-    let submissions: SubmissionModel[] = await Submission.findByUser(user);
-    return await Match.find({submission_ids: {$in: submissions}});
+    let _submissions: SubmissionModel[] = await Submission.findByUser(user);
+    return await Match.find({"submissions.submission": {$in: _submissions.map(sub => sub._id)}});
   }
 }
 
 export class MatchClass {
-  submission_ids: string[];
-  winner_id: string;
+  submissions: MatchSubmissionClass[];
   replayFile?: string;
   matchTime: Date;
-  turns: Number;
+  turns: number;
   state: MatchState;
-  async Submissions(): Promise<SubmissionModel[]> {
-    return await Submission.find({_id: {$in: this.submission_ids}});
-  };
+  addSubmission(submission: SubmissionModel) {
+    this.submissions = this.submissions || [];
+    this.submissions.push(new MatchSubmissionClass(submission));
+  }
+  addSubmissions(submissions: SubmissionModel[]) {
+    submissions.forEach(submission => this.addSubmission(submission));
+  }
 }
 
 export type MatchModel = MatchClass & Document;
 type MatchType = MatchClass & MatchStatic & Model<MatchModel>;
 
 const schema = new Schema({
-  submission_ids: [Schema.Types.ObjectId],
-  winner_id: Schema.Types.ObjectId,
+  submissions: [MatchSubmissionSchema],
   replayFile: String,
   matchTime: Date,
   turns: Number,

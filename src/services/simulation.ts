@@ -21,10 +21,10 @@ async function processError(match: MatchModel, error: string) {
 
 async function simulate(match: MatchModel) {
   try {
-    let files:File [] = (await match.Submissions()).map(
-      submission => ({
-        name: submission._id,
-        contents: submission.code,
+    let files:File [] = match.submissions.map(
+      matchSubmission => ({
+        name: matchSubmission.submission._id,
+        contents: matchSubmission.submission.code,
       })
     );    
     let sandbox = new DockerSandbox();
