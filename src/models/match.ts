@@ -1,7 +1,11 @@
 import * as mongoose from 'mongoose';
+
+import logger from '../env/debug';
 import { Document, Model, Schema } from 'mongoose';
 import { UserModel } from './user';
 import { Submission, SubmissionModel } from './submission';
+
+const debug = logger('Simulation');
 
 export enum MatchState {
     NotRun = 'Not Run',
@@ -11,6 +15,15 @@ export enum MatchState {
     RuntimeError = 'Runtime Error',
 };
 
+export class MatchSubmission {
+  submission_id: string;
+  score: number;
+  async SubmissionModel(): Promise<SubmissionModel> {
+    debug('SubmissionModel()');
+    return await Submission.findById(this.submission_id);
+  }
+}
+
 interface MatchStatic {
   findBySubmission(submission: SubmissionModel): Promise<MatchModel[]>;
   findByUser(user: UserModel): Promise<MatchModel[]>;
@@ -18,33 +31,44 @@ interface MatchStatic {
 
 class MatchStatic {
   static async findBySubmission(submission: SubmissionModel) {
-    return await Match.find({submission_ids: submission._id});
+    return Match.find({submission_ids: submission._id});
   }
   
   static async findByUser(user: UserModel) {
     let submissions: SubmissionModel[] = await Submission.findByUser(user);
-    return await Match.find({submission_ids: {$in: submissions}});
+    return Match.find({submission_ids: {$in: submissions}});
   }
 }
 
 export class MatchClass {
-  submission_ids: string[];
-  winner_id: string;
+  submissions: MatchSubmission[];
   replayFile?: string;
   matchTime: Date;
-  turns: Number;
+  turns: number;
   state: MatchState;
-  async Submissions(): Promise<SubmissionModel[]> {
-    return await Submission.find({_id: {$in: this.submission_ids}});
-  };
+  async addSubmission(submission: SubmissionModel) {
+    this.submissions = this.submissions || [];
+
+    let matchSubmission = new MatchSubmission();
+    matchSubmission.submission_id = submission._id;
+    matchSubmission.score = 0;
+    this.submissions.push(matchSubmission);
+  }
+  async addSubmissions(submissions: SubmissionModel[]) {
+    submissions.forEach(submission => this.addSubmission(submission));
+  }
 }
 
 export type MatchModel = MatchClass & Document;
 type MatchType = MatchClass & MatchStatic & Model<MatchModel>;
 
 const schema = new Schema({
-  submission_ids: [Schema.Types.ObjectId],
-  winner_id: Schema.Types.ObjectId,
+  submissions: [
+    {
+      submission_id: Schema.Types.ObjectId,
+      score: Number,
+    }
+  ],
   replayFile: String,
   matchTime: Date,
   turns: Number,

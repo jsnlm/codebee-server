@@ -6,6 +6,8 @@ import jobs from './jobs';
 import logger from './env/debug';
 
 import { seedMatches } from './test/match.seed';
+import { seedSubmissions } from './test/submission.seed';
+import { seedUsers } from './test/user.seed';
 
 const debug = logger('server');
 
@@ -36,6 +38,11 @@ function startServer() {
   /**
   * Start Jobs
   */
+  // seedMatches(20, undefined, undefined, {state: 'Not Run'});
+  // seedMatches(4, undefined, undefined, {state: 'Not Run'});
+  // seedSubmissions(2);
+  // seedSubmissions(3);
+  // seedUsers(5);
   jobs();
 
   /**

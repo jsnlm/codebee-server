@@ -20,8 +20,12 @@ beforeAll(async () => {
   match2 = await seedMatch(submissions);
 });
 
-test('submission getter', async () => {
-  expect((await match1.Submissions()).length).toEqual(4);
+test('submissions set properly', async () => {
+  expect((await match1.submissions).length).toEqual(4);
+});
+
+test('matchSubmission getter', async () => {
+  expect(submissions.includes(await match1.submissions[0].SubmissionModel()) ).toBeTruthy();
 });
 
 test('findBySubmission', async () => {
