@@ -11,16 +11,22 @@ export let mockgoose: Mockgoose;
 
 export async function initialize(mock = false) {
   const uri = env.MONGO_URI;
+  let options;
 
   try {
     if (mock) {
       mockgoose = new Mockgoose(mongoose);
       await mockgoose.prepareStorage();
       debug('Using mock database with mockgoose');
+    } else {
+      options = {
+        user: env.MONGO_USER,
+        pass: env.MONGO_PASSWORD,
+      };
     }
-
+    
     (mongoose as any).Promise = global.Promise;
-    await mongoose.connect(uri);
+    await mongoose.connect(uri, options);
   } catch (e) {
     debug(`Error connecting to MongoDB at ${uri}`);
     throw e;

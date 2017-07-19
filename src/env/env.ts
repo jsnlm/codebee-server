@@ -4,10 +4,9 @@ interface EnvironmentVars {
   NODE_ENV: string;
   DEBUG: string;
   MONGO_URI: string;
+  MONGO_USER: string;
+  MONGO_PASSWORD: string;
   PORT: string;
-
-  DOCKER_HOST: string;
-  DOCKER_MACHINE_NAME: string;
 }
 
 dotenv.config();
