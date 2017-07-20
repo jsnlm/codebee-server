@@ -1,6 +1,6 @@
 import logger from '../../env/debug';
 
-import { setupTest } from '../../test/helper';
+import { setupTest, clearDatabase } from '../../test/helper';
 import { seedUsers } from '../../test/user.seed';
 import { seedSubmissions, seedSubmission } from '../../test/submission.seed';
 import { seedMatch } from '../../test/match.seed';
@@ -26,11 +26,7 @@ beforeAll(async () => {
 });
 
 test('MatchSubmission reference', async () => {
-  let submission = await seedSubmission();
-  let match4: MatchClass = new MatchClass();
-  match4.addSubmission(submission);
-  let matchModel3: MatchModel = await Match.create(match4);
-  expect(matchModel3.submissions[0].submission._id).toEqual(submission._id);
+  expect( submissions.map(sub => sub._id).includes(match1.submissions[0].submission._id) ).toBeTruthy();
 });
 
 test('submissions set properly', async () => {
