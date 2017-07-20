@@ -10,7 +10,12 @@ import { fsWrapper, File } from '../fsWrapper';
 const exec = promisify(execCallback);
 const debug = logger('dockerSandbox');
 
-class DockerSandbox {
+export interface dockerEnvVar {
+  name: string;
+  value: string;
+}
+
+export class DockerSandbox {
 
   path: string;
   imageName: string;
@@ -31,9 +36,12 @@ class DockerSandbox {
     return exec(`docker build -f ${this.path}Dockerfile -t ${this.imageName} .`);
   }
    
-  async run(args: string): Promise<string> {
+  async run(args: dockerEnvVar[]): Promise<string> {
     return new Promise<string>( async (resolve, reject) =>{
-      const { stdout, stderr } = await exec(`docker run -e ARGS="${args}" ${this.imageName}`);
+      let stringifiedArgs = args.map( arg => `-e ${arg.name}="${arg.value}"` ).join(' ');
+      let runThisCommand = `docker run ${stringifiedArgs} ${this.imageName}`;
+      debug("runThisCommand : ", runThisCommand);
+      const { stdout, stderr } = await exec(runThisCommand);
       resolve(stdout);
       reject(stderr);
     });

@@ -1,0 +1,6 @@
+NODE_ENV=development
+PORT=3000
+DEBUG=codebee*
+MONGO_URI=ds163181.mlab.com:63181/codebee
+MONGO_USER=ernest
+MONGO_PASSWORD=welcometo321lester

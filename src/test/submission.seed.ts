@@ -5,7 +5,7 @@ import { Submission, SubmissionClass, SubmissionModel } from '../models/submissi
 import { seedUser } from './user.seed';
 
 casual.define('language', ():string => {
-  let languages =['javascript', 'python', 'ruby'];
+  let languages =['javascript', 'python', 'ruby', 'c++'];
   return languages[Math.floor((Math.random() * languages.length))];
 });
 

@@ -1,7 +1,7 @@
-FROM python:2.7-slim
+FROM gcc:7.1.0
 
 WORKDIR /app
 
 ADD codebee_sandbox/* /app/
 
-CMD ./a.out $ARGS
+CMD $COMPILE_ARG0 ; $COMPILE_ARG1 ; $COMPILE_ARG2 ; $COMPILE_ARG3 ; $COMPILE_ARG4 ; $COMPILE_ARG5 ; ./codebee_game $EXEC_ARGS
